@@ -1,0 +1,126 @@
+% Meridian 59, Copyright 1994-2012 Andrew Kirmse and Chris Kirmse.
+% All rights reserved.
+%
+% This software is distributed under a license that is described in
+% the LICENSE file that accompanies it.
+%
+% Meridian is a registered trademark.
+
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+InstanceRoom is MonsterRoom
+
+constants:
+
+   include blakston.khd
+   
+   DIMENSIONAL_EXPIRATION_TIME = 60000
+
+resources:
+
+   InstanceRoom_name = "A room instance"
+   InstanceRoom_roo = MarDun02.roo
+
+   InstanceRoom_music = Song.mid
+   
+   InstanceRoom_expire = "Dimensional energies shift, and you find yourself violently thrown back into your own reality!"
+
+classvars:
+
+   vrName = InstanceRoom_name
+
+   viTeleport_row = 17
+   viTeleport_col = 18
+
+   viTerrain_type = TERRAIN_NECROPOLIS | TERRAIN_CAVES
+
+properties:
+
+   prRoom = InstanceRoom_roo
+   piRoom_num = $
+
+   piGenTime = 15000
+
+   piBaseLight = LIGHT_DARK
+   piOutside_factor = OUTDOORS_NONE
+
+   prMusic = InstanceRoom_music
+
+   piDifficultyMod = 100
+   piExperienceMod = 100
+   piTreasureMod = 100
+
+   ptExpireTimer = $
+
+messages:
+
+   Constructor(iRID=RID_INSTANCE_START)
+   {
+      piRoom_num = iRID;
+      propagate;
+   }
+   
+   SetValues(monster_class=&Mummy,iDifficultyMod=100, iExperienceMod=100, iTreasureMod=100)
+   {
+      piDifficultyMod = iDifficultyMod;
+      piExperienceMod = iExperienceMod;
+      piTreasureMod = iTreasureMod;
+
+      plMonsters = [ [monster_class, 100] ];
+
+      return;
+   }
+   
+   LeaveHold(what = $)
+   {
+      if IsClass(what,&User)
+         AND NOT Send(what,@IsLoggedOn)
+      {
+         Send(what,@AdminGoToSafety);
+      }
+
+      propagate;
+   }
+   
+   FirstUserEntered()
+   {
+      ptExpireTimer = CreateTimer(self,@RoomExpire,DIMENSIONAL_EXPIRATION_TIME);
+      propagate;
+   }
+   
+   RoomExpire()
+   {
+      local i, each_obj;
+      
+      ptExpireTimer = $;
+      
+      for i in plActive
+      {
+         each_obj = Send(self,@HolderExtractObject,#data=i);
+         if IsClass(each_obj,&User)
+         {
+            Send(each_obj,@MsgSendUser,#message_rsc=InstanceRoom_expire);
+            Send(each_obj,@AdminGoToSafety);
+         }
+      }
+      
+      Send(self,@Delete);
+      
+      return;
+   }
+   
+   LastUserLeft()
+   {
+      propagate;
+   }
+
+   Delete()
+   {
+      Send(Send(SYS,@GetInstanceRoomMaintenance),@RoomDeleted,#what=self);
+
+      propagate;
+   }
+
+
+end
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%

@@ -1,0 +1,98 @@
+% Meridian 59, Copyright 1994-2012 Andrew Kirmse and Chris Kirmse.
+% All rights reserved.
+%
+% This software is distributed under a license that is described in
+% the LICENSE file that accompanies it.
+%
+% Meridian is a registered trademark.
+
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+InstanceRoomMaintenance is UtilityFunctions
+
+constants:
+   
+   include blakston.khd
+
+resources:
+
+properties:
+
+   plInstanceRooms = $
+
+messages: 
+
+   Constructor()
+   {
+      return;
+   }
+
+   Recreate()
+   {
+      return;
+   }
+
+   MakeInstanceRoom(instance_class=&AltCrypt1,monster_class=&Mummy,iDifficultyMod=100,iExperienceMod=100,iTreasureMod=100)
+   {
+      local iRID, oRoom;
+      
+      % set up the room
+      iRID = send(self,@GetNextAvailableRID);
+      Send(SYS,@CreateOneRoomIfNew,#num=iRID,#class=instance_class);
+      plInstanceRooms = cons(iRID,plInstanceRooms);
+      
+      send(send(SYS,@FindRoomByNum,#num=iRID),@SetValues,#monster_class=monster_class,
+                    #iDifficultyMod=iDifficultyMod,#iExperienceMod=iExperienceMod,#iTreasureMod=iTreasureMod);
+
+      return iRID;
+   }
+
+   GetNextAvailableRID()
+   {
+      local iRID;
+
+      iRID = RID_INSTANCE_START;
+
+      if plInstanceRooms = $
+      {
+         return iRID;
+      }
+      
+      while TRUE  % Keep going until we find something!
+      {
+         if NOT FindListElem(plInstanceRooms,iRID)
+         {
+            return iRID;
+         }
+         
+         iRID = iRID + 1;
+         
+         if iRID > 9999
+         {
+            return 0;
+         }
+      }
+      
+      return 0;
+   }
+
+   RoomDeleted(what=$)
+   {
+      local lRoomsRented, iRID;
+
+      iRID = send(what,@GetRoomNum);
+
+      if FindListElem(plInstanceRooms,iRID)
+      {
+         plInstanceRooms = DelListElem(plInstanceRooms,iRID);
+      }
+      else
+      {
+         DEBUG("RoomDeleted:: Tried to remove an unlisted room.");
+      }
+
+      return;
+   }
+
+end
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%

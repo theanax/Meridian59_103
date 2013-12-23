@@ -296,6 +296,7 @@ properties:
    poTerritoryGame = $
    poNodeAttack = $
    poRentableRoomMaintenance = $
+   poInstanceRoomMaintenance = $
    
    % Singleton object that keeps track of various game statistics
    poStatistics = $
@@ -433,6 +434,7 @@ messages:
       Send(self,@RecreateQuestEngine);
       Send(self,@RecreateNodeAttack);
       Send(self,@RecreateRentableRoomMaintenance);
+      Send(self,@RecreateInstanceRoomMaintenance);
 
       Send(self,@RecreateAllSpells,#figure_totals=FALSE);
       Send(self,@RecreateAllSkills,#figure_totals=FALSE);
@@ -530,6 +532,7 @@ messages:
       Send(self,@RecreateParliament);
       Send(self,@RecreateNodeAttack);
       Send(self,@RecreateRentableRoomMaintenance);
+      Send(self,@RecreateInstanceRoomMaintenance);
       Send(self,@RecreateWarEvent);
       piRecreate_state = RECREATE_WAITING;
       ptRecreateTimer = CreateTimer(self,@RecreateTimerPhaseTwo,3000);
@@ -4430,6 +4433,11 @@ messages:
       return poNodeAttack;
    }
 
+   GetInstanceRoomMaintenance()
+   {
+      return poInstanceRoomMaintenance;
+   }
+   
    GetRentableRoomMaintenance()
    {
       return poRentableRoomMaintenance;
@@ -4478,6 +4486,20 @@ messages:
          poNodeAttack = Create(&NodeAttack);
       }
 
+      return TRUE;
+   }
+   
+   RecreateInstanceRoomMaintenance()
+   {
+      if poInstanceRoomMaintenance <> $
+      {
+         Send(poInstanceRoomMaintenance,@Recreate);
+      }
+      else
+      {
+         poInstanceRoomMaintenance = Create(&InstanceRoomMaintenance);
+      }
+      
       return TRUE;
    }
 
@@ -4958,6 +4980,8 @@ messages:
       plItemTemplates = cons(create(&ShrunkenHeadMask),plItemTemplates);
 
       plItemTemplates = cons(create(&ManaCrystal),plItemTemplates);
+      
+      plItemTemplates = cons(create(&InstanceGem),plItemTemplates);
 
       return;
    }
