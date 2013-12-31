@@ -1985,14 +1985,24 @@ messages:
       return;
    }
 
-   CreateOneRoomIfNew(num = $,class = $)
+   CreateOneRoomIfNew(num = $,class = $,iBaseRID = $)
    {
       local oRoom;
 
       if Send(self,@FindRoomByNum,#num=num) = $
       {
-         % note: only rentable rooms use the iRID parameter.
-         oRoom = Create(class,#iRID=num);
+         % note: only rentable and instanced rooms use the iRID parameter.
+         %       only instanced rooms use the instance_base_rid parameter
+         
+         if iBaseRID <> $
+         {
+            oRoom = Create(class,#iRID=num,#iBaseRID=iBaseRID);
+         }
+         else
+         {
+            oRoom = Create(class,#iRID=num);
+         }
+
          if oRoom = $
          {
             Debug("Tried to create room RID",num,"FAILED!");

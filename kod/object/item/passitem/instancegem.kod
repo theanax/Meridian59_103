@@ -21,11 +21,15 @@ resources:
    InstanceGem_desc_rsc = "This gem pulses with dimensional energy. You sense that it leads to a place much like "
    InstanceGem_desc2_rsc = ", with "
    InstanceGem_desc3_rsc = "% experience gains and "
-   InstanceGem_desc4_rsc = "% treasure drops."
+   InstanceGem_desc4_rsc = "% treasure drops. You sense "
+   InstanceGem_desc5_rsc = " life forces within."
 
    InstanceGem_portal = \
       "As you release the magic of the gem, a tear in the fabric of reality opens, "
       "pulling you through!"
+      
+   already_within_instance = "You have the strangest feeling that the energy within the gem is somehow smirking at you."
+   room_no_combat_error = "The area's tranquil nature seems to be interfering with the gem's energy."
 
 classvars:
 
@@ -41,8 +45,9 @@ classvars:
 
 properties:
 
-   piDestinationClass = $
+   piBaseRID = $
    piMonsterClass = $
+   psMonsterName = $
 
    piDifficultyMod = 100
    piExperienceMod = 100
@@ -52,14 +57,96 @@ messages:
 
    Constructor()
    {
+      local poInstanceRoomMaintenance, iRandom, plRIDs, plMonsterClasses, i;
+
       piDifficultyMod = Random(50,150);
       piExperienceMod = Random(100,500);
       piTreasureMod = Random(100,500);
       
-      piDestinationClass = &AltCrypt1;
-      piMonsterClass = &Avar;
+      
+      poInstanceRoomMaintenance = Send(SYS,@GetInstanceRoomMaintenance);
+      
+      if poInstanceRoomMaintenance <> $
+      {
+         plRIDs = Send(poInstanceRoomMaintenance,@GetValidRIDs);
+         iRandom = Random(1,Length(plRIDs));
+         piBaseRID = Nth(plRIDs,iRandom);
+         
+         plMonsterClasses = Send(poInstanceRoomMaintenance,@GetValidMonsterClasses);
+         iRandom = Random(1,Length(plMonsterClasses));
+         piMonsterClass = Nth(plMonsterClasses,iRandom);
+      }
+      else
+      {
+         piBaseRID = RID_THRONE1;
+         piMonsterClass = &Avar;
+      }
+      
+      for i in Send(SYS,@GetMonsterTemplates)
+      {
+         if IsClass(i,piMonsterClass)
+         {
+            psMonsterName = Send(i,@GetName);
+         }
+      }      
       
       propagate;
+   }
+
+   ReqNewApply(what=$)
+   {
+      local oRoom;
+
+      if IsClass(what,&User)
+      {
+         oRoom = Send(what,@GetOwner);
+         
+         If IsClass(oRoom,&InstanceRoom)
+         {
+            Send(what,@MsgSendUser,#message_rsc=already_within_instance);
+            return FALSE;
+         }
+         
+         If Send(oRoom,@CheckRoomFlag,#flag=ROOM_NO_COMBAT)
+         {
+            Send(what,@MsgSendUser,#message_rsc=room_no_combat_error);
+            return FALSE;
+         }
+      }
+      return TRUE;
+   }
+
+   NewApplied(what = $,apply_on = $)
+   {
+      local poInstanceRoomMaintenance, iRID, oRoom;
+      
+      iRID = 0;
+      poInstanceRoomMaintenance = Send(SYS,@GetInstanceRoomMaintenance);
+      
+      if poInstanceRoomMaintenance <> $
+      {
+         iRID = Send(poInstanceRoomMaintenance,@MakeInstanceRoom,
+                     #iBaseRID=piBaseRID,
+                     #monster_class=piMonsterClass,
+                     #iDifficultyMod=piDifficultyMod,
+                     #iExperienceMod=piExperienceMod,
+                     #iTreasureMod=piTreasureMod);
+      }
+      
+      if iRID <> 0
+      {
+         oRoom = Send(SYS,@FindRoomByNum,#num=iRID);
+         if IsClass(what,&User)
+         {
+            Send(what,@MsgSendUser,#message_rsc=InstanceGem_portal);
+            Send(oRoom,@SetCreatorOriginData,#who=what);
+            Send(oRoom,@Teleport,#what=what);
+         }
+      }
+      
+      Post(self,@Delete);
+
+      return;
    }
 
    CanBeGivenToNPC()
@@ -71,7 +158,7 @@ messages:
    {
       local rName;
 
-      rName = "The crypt in Marion";
+      rName = Send(Send(SYS,@FindRoomByNum,#num=piBaseRID),@GetName);
 
       ClearTempString();
       AppendTempString(vrDesc);
@@ -81,6 +168,8 @@ messages:
       AppendTempString(InstanceGem_desc3_rsc);
       AppendTempString(piTreasureMod);
       AppendTempString(InstanceGem_desc4_rsc);
+      AppendTempString(psMonsterName);
+      AppendTempString(InstanceGem_desc5_rsc);
 
       return;
    }
@@ -102,39 +191,6 @@ messages:
    SendInventoryAnimation()
    {
       AddPacket(1,ANIMATE_CYCLE,4,400,2,1,2,6);  % Frames 1 to 6, and back to 1
-
-      return;
-   }
-
-   ReqNewApply()
-   {
-      return TRUE;
-   }
-
-   NewApplied(what = $,apply_on = $)
-   {
-      local poInstanceRoomMaintenance, iRID, oRoom;
-      
-      iRID = 0;
-      poInstanceRoomMaintenance = Send(SYS,@GetInstanceRoomMaintenance);
-      
-      if poInstanceRoomMaintenance <> $
-      {
-         iRID = Send(poInstanceRoomMaintenance,@MakeInstanceRoom,#instance_class=piDestinationClass,#monster_class=piMonsterClass,
-              #iDifficultyMod=piDifficultyMod,#iExperienceMod=piExperienceMod,#iTreasureMod=piTreasureMod);
-      }
-      
-      if iRID <> 0
-      {
-         oRoom = Send(SYS,@FindRoomByNum,#num=iRID);
-         if IsClass(what,&User)
-         {
-            Send(what,@MsgSendUser,#message_rsc=InstanceGem_portal);
-            Send(oRoom,@Teleport,#what=what);
-         }
-      }
-      
-      Post(self,@Delete);
 
       return;
    }
