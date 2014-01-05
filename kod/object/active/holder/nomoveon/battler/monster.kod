@@ -3092,6 +3092,15 @@ messages:
               #killing_player=what,#corpse=oBody );
          
          Send(self,@CreateTreasure,#who=what,#corpse=oBody);
+         
+         If Random(1,100) <= Send(Send(SYS,@GetSettings),@GetInstancePortalChance)
+            AND NOT IsClass(Send(self,@GetOwner),&InstanceRoom)
+         {
+            Create(&InstancePortal,#who=what,#portal_room=Send(self,@GetOwner),
+                                   #portal_row=Send(self,@GetRow),#portal_col=Send(self,@GetCol),
+                                   #portal_fine_row=Send(self,@GetFineRow),
+                                   #portal_fine_col=Send(self,@GetFineCol));
+         }
 
          % Delete here so we don't accidentally "kill" then delete system
          %  template monsters.

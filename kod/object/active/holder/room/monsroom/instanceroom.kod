@@ -14,7 +14,7 @@ constants:
 
    include blakston.khd
    
-   DIMENSIONAL_EXPIRATION_TIME = 60000
+   DIMENSIONAL_EXPIRATION_TIME = 600000
 
 resources:
 
@@ -24,6 +24,9 @@ resources:
    InstanceRoom_music = Song.mid
    
    InstanceRoom_expire = "Dimensional energies shift, and you find yourself violently thrown back into your own reality!"
+   
+   InstanceRoom_win = "With the slaughter complete, you feel an uplifting sense of victory... tainted by the vague suspicion "
+                      "that you may have also unwittingly served the agenda of whatever unknown force brought you here."
 
 classvars:
 
@@ -100,7 +103,8 @@ messages:
       return;
    }
    
-   SetCreatorOriginData(who=$)
+   SetCreatorOriginData(who=$,origin_room=$)
+   "Instance gems base themselves on the location of the user, while instance portals just use blink spots."
    {
       if who <> $
          AND IsClass(who,&User)
@@ -113,6 +117,16 @@ messages:
          piOriginFineRow = Send(who,@GetFineRow);
          piOriginFineCol = Send(who,@GetFineCol);
          piOriginAngle = Send(who,@GetAngle);
+      }
+      
+      if origin_room <> $
+      {
+         piOriginRID = Send(origin_room,@GetRoomNum);
+         piOriginRow = Send(origin_room,@GetTeleportRow);
+         piOriginCol = Send(origin_room,@GetTeleportCol);
+         piOriginFineRow = 0;
+         piOriginFineCol = 0;
+         piOriginAngle = Send(origin_room,@GetTeleportAngle);
       }
    
       return;
@@ -146,34 +160,6 @@ messages:
    FirstUserEntered()
    {
       propagate;
-   }
-   
-   RoomExpire()
-   {
-      local i, each_obj, oOriginRoom, oLoggedPlayer;
-      
-      ptExpireTimer = $;
-
-      for i in plActive
-      {
-         each_obj = Send(self,@HolderExtractObject,#data=i);
-         if IsClass(each_obj,&User)
-         {
-            Send(each_obj,@MsgSendUser,#message_rsc=InstanceRoom_expire);
-            Send(self,@ReturnUserToOrigin,#who=each_obj);
-         }
-         else
-         {
-            if IsClass(each_obj,&LogoffGhost)
-            {
-               Send(self,@ReturnUserToOrigin,#who=each_obj);
-            }
-         }
-      }
-      
-      Send(self,@Delete);
-      
-      return;
    }
    
    ReturnUserToOrigin(who=$)
@@ -247,9 +233,43 @@ messages:
    {
       propagate;
    }
+   
+   RoomExpire()
+   {
+      ptExpireTimer = $;
+      
+      Send(self,@Delete);
+      
+      return;
+   }
 
    Delete()
    {
+      local i, each_obj, oOriginRoom, oLoggedPlayer;
+      
+      if ptExpireTimer <> $
+      {
+         DeleteTimer(ptExpireTimer);
+         ptExpireTimer = $;
+      }
+
+      for i in plActive
+      {
+         each_obj = Send(self,@HolderExtractObject,#data=i);
+         if IsClass(each_obj,&User)
+         {
+            Send(each_obj,@MsgSendUser,#message_rsc=InstanceRoom_expire);
+            Send(self,@ReturnUserToOrigin,#who=each_obj);
+         }
+         else
+         {
+            if IsClass(each_obj,&LogoffGhost)
+            {
+               Send(self,@ReturnUserToOrigin,#who=each_obj);
+            }
+         }
+      }
+
       Send(Send(SYS,@GetInstanceRoomMaintenance),@RoomDeleted,#what=self);
 
       propagate;

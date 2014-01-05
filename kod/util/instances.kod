@@ -58,8 +58,6 @@ messages:
       plRIDs = Cons(RID_BRAX_CAVES,plRIDs);
       plRIDs = Cons(RID_BRAX_GRAVE,plRIDs);
       plRIDs = Cons(RID_BRAX_GRAVEYARD,plRIDs);
-      plRIDs = Cons(RID_BRAX_BUILDING1,plRIDs);
-      plRIDs = Cons(RID_BRAX_BUILDING2,plRIDs);
       plRIDs = Cons(RID_BRAX_CASTLE1,plRIDs);
       plRIDs = Cons(RID_BRAX_CASTLE2,plRIDs);
       plRIDs = Cons(RID_BRAX_MAZE,plRIDs);
@@ -70,6 +68,15 @@ messages:
       plRIDs = Cons(RID_ILERIA,plRIDs);
       plRIDs = Cons(RID_CRAGGED,plRIDs);
       plRIDs = Cons(RID_LAKE,plRIDs);
+      plRIDs = Cons(RID_CHASM,plRIDs);
+      plRIDs = Cons(RID_KE4,plRIDs);
+      plRIDs = Cons(RID_ORC_CAVE1,plRIDs);
+      plRIDs = Cons(RID_ORC_CAVE2,plRIDs);
+      plRIDs = Cons(RID_ORC_CAVE3,plRIDs);
+      plRIDs = Cons(RID_ORC_CAVE4,plRIDs);
+      plRIDs = Cons(RID_ORC_CAVE5,plRIDs);
+      plRIDs = Cons(RID_ORC_CAVE6,plRIDs);
+      plRIDs = Cons(RID_MAR_CRYPT2,plRIDs);
 
       return;
    }
@@ -97,6 +104,7 @@ messages:
       plMonsterClasses = Cons(&DarkAngel,plMonsterClasses);
       plMonsterClasses = Cons(&Ghost,plMonsterClasses);
       plMonsterClasses = Cons(&Lupogg,plMonsterClasses);
+      plMonsterClasses = Cons(&LupoggKing,plMonsterClasses);
 
       return;
    }
