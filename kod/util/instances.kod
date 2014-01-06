@@ -54,12 +54,9 @@ messages:
       plRIDs = $;
       
       plRIDs = Cons(RID_UKGOTH,plRIDs);
-      plRIDs = Cons(RID_BRAX,plRIDs);
-      plRIDs = Cons(RID_BRAX_CAVES,plRIDs);
       plRIDs = Cons(RID_BRAX_GRAVE,plRIDs);
       plRIDs = Cons(RID_BRAX_GRAVEYARD,plRIDs);
       plRIDs = Cons(RID_BRAX_CASTLE1,plRIDs);
-      plRIDs = Cons(RID_BRAX_CASTLE2,plRIDs);
       plRIDs = Cons(RID_BRAX_MAZE,plRIDs);
       plRIDs = Cons(RID_ICE_CAVE1,plRIDs);
       plRIDs = Cons(RID_SEAFARER,plRIDs);
@@ -91,25 +88,21 @@ messages:
       }
       plMonsterClasses = $;
 
+      plMonsterClasses = Cons(&GiantRat,plMonsterClasses);
+      plMonsterClasses = Cons(&Centipede,plMonsterClasses);
+      plMonsterClasses = Cons(&Troll,plMonsterClasses);
       plMonsterClasses = Cons(&Avar,plMonsterClasses);
-      plMonsterClasses = Cons(&Ent,plMonsterClasses);
       plMonsterClasses = Cons(&TuskedSkeleton,plMonsterClasses);
       plMonsterClasses = Cons(&DaemonSkeleton,plMonsterClasses);
       plMonsterClasses = Cons(&BatteredSkeleton,plMonsterClasses);
-      plMonsterClasses = Cons(&GroundWormQueen,plMonsterClasses);
-      plMonsterClasses = Cons(&XeoEarth,plMonsterClasses);
-      plMonsterClasses = Cons(&XeoAir,plMonsterClasses);
-      plMonsterClasses = Cons(&XeoFire,plMonsterClasses);
-      plMonsterClasses = Cons(&XeoWater,plMonsterClasses);
-      plMonsterClasses = Cons(&DarkAngel,plMonsterClasses);
-      plMonsterClasses = Cons(&Ghost,plMonsterClasses);
       plMonsterClasses = Cons(&Lupogg,plMonsterClasses);
-      plMonsterClasses = Cons(&LupoggKing,plMonsterClasses);
 
       return;
    }
 
-   MakeInstanceRoom(iBaseRID=RID_THRONE1,monster_class=&Mummy,iDifficultyMod=100,iExperienceMod=100,iTreasureMod=100)
+   MakeInstanceRoom(iBaseRID=RID_THRONE1,monster_class=&Mummy,secondary_monster_class=&Mummy,
+                    iDifficultyMod=100,iExperienceMod=2,iTreasureMod=2,
+                    iLevel=90,iDifficulty=1,iAttack_type=ATCK_WEAP_HIT,iAttack_spell=0,iSpeed=0)
    {
       local iRID, oRoom;
       
@@ -120,9 +113,15 @@ messages:
       
       send(send(SYS,@FindRoomByNum,#num=iRID),@SetValues,
                                               #monster_class=monster_class,
+                                              #secondary_monster_class=secondary_monster_class,
                                               #iDifficultyMod=iDifficultyMod,
                                               #iExperienceMod=iExperienceMod,
-                                              #iTreasureMod=iTreasureMod);
+                                              #iTreasureMod=iTreasureMod,
+                                              #iLevel=iLevel,
+                                              #iDifficulty=iDifficulty,
+                                              #iAttack_type=iAttack_type,
+                                              #iAttack_spell=iAttack_spell,
+                                              #iSpeed=iSpeed);
 
       return iRID;
    }

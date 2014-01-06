@@ -27,10 +27,16 @@ resources:
    
    InstanceRoom_win = "With the slaughter complete, you feel an uplifting sense of victory... tainted by the vague suspicion "
                       "that you may have also unwittingly served the agenda of whatever unknown force brought you here."
+                      
+   default_victory_wav_rsc = tougher.wav
+   
+   no_walls_in_instance = "Due to the strange magical currents here, your wall spell fails to become coherent."
 
 classvars:
 
    vrName = InstanceRoom_name
+   
+   victory_wav_rsc = default_victory_wav_rsc
 
    viTeleport_row = 5
    viTeleport_col = 5
@@ -54,18 +60,32 @@ properties:
    piVariableTeleport_col = $
    piVariableTeleport_angle = $
 
-   piGenTime = 15000
-
    piBaseLight = LIGHT_DARK
    piOutside_factor = OUTDOORS_NONE
 
    prMusic = InstanceRoom_music
 
    piDifficultyMod = 100
-   piExperienceMod = 100
-   piTreasureMod = 100
+   piExperienceMod = 5
+   piTreasureMod = 5
 
    ptExpireTimer = $
+   
+   piGen_Time = 1000
+   piInit_count_min = 1
+   piInit_count_max = 1
+   piMonster_count_max = 30
+   
+   piAdditionalKills_to_win_per_player = 20
+   piKills_to_win = 30
+   piKills_so_far = 0
+
+   piLevel = 90
+   piDifficulty = 0
+   piKarma = 0
+   piAttack_type = ATCK_WEAP_HIT
+   piAttack_spell = 0
+   piSpeed = 0
 
 messages:
 
@@ -81,6 +101,12 @@ messages:
       {
          prRoom = Send(oBaseRoom,@GetRoomResource);
          plGenerators = Send(oBaseRoom,@GetGenerators);
+         
+         if plGenerators <> $
+         {
+            piInit_count_min = Length(plGenerators);
+            piInit_count_max = Length(plGenerators);
+         }
 
          piVariableTeleport_row = Send(oBaseRoom,@GetTeleportRow);
          piVariableTeleport_col = Send(oBaseRoom,@GetTeleportCol);
@@ -92,13 +118,27 @@ messages:
       propagate;
    }
    
-   SetValues(monster_class=&Mummy,iDifficultyMod=100, iExperienceMod=100, iTreasureMod=100)
+   SetValues(monster_class=&Mummy,secondary_monster_class=&Mummy,iDifficultyMod=100, iExperienceMod=2, iTreasureMod=2,
+             iLevel=90,iDifficulty=0,iAttack_type=ATCK_WEAP_HIT,iAttack_spell=0,iSpeed=0)
    {
-      plMonsters = [ [monster_class, 100] ];
+      if monster_class = secondary_monster_class
+      {
+         plMonsters = [ [monster_class, 100] ];
+      }
+      else
+      {
+         plMonsters = [ [monster_class, 70], [secondary_monster_class, 30] ];
+      }
 
       piDifficultyMod = iDifficultyMod;
       piExperienceMod = iExperienceMod;
       piTreasureMod = iTreasureMod;
+
+      piLevel = iLevel;
+      piDifficulty = iDifficulty;
+      piAttack_type = iAttack_type;
+      piAttack_spell = iAttack_spell;
+      piSpeed = iSpeed;
 
       return;
    }
@@ -147,19 +187,125 @@ messages:
       return piTreasureMod;
    }
    
-   LeaveHold(what = $)
+   SomethingMoved(what=$)
    {
-%      if IsClass(what,&User)
-%      {
-%         Post(self,@ReturnUserToOrigin,#who=what);
-%      }
+      if IsClass(what,&User)
+      {
+         Send(self,@AgitateMonsters,#who=what);
+      }
 
       propagate;
    }
    
-   FirstUserEntered()
+   AgitateMonsters(who=$)
    {
+      local oMonster;
+      
+      for oMonster in plActive
+      {
+         If IsClass(first(oMonster),&Monster)
+            and NOT (Send(first(oMonster), @GetBehavior) & AI_NPC )
+         {
+            if send(first(oMonster), @GetTarget) = $
+            {
+               if Send(first(oMonster),@GetMaster) = $
+	           {			
+		          Send(first(oMonster), @TargetSwitch, #what=who, #iHatred=100);
+		          Send(first(oMonster), @EnterStateChase, #target=who, #actnow=True);
+	           }
+            }
+         }
+      }
+      
+      return;
+   }
+   
+   TryCreateMonster(initroom = FALSE,loadfirst = FALSE)
+   {
+      local oMonster,iRoll,iTotal,lMonster_info,iRow,iCol,lPos;
+
+      if piMonster_count + piKills_so_far >= piKills_to_win
+      {
+         return false;
+      }
+
+      if NOT send(self,@IsMonsterCountBelowMax)
+         OR NOT pbGenerateMonsters
+      {
+         return;
+      }
+
+      iRoll = Random(1,100);
+      if (iRoll > piGen_percent) and (initroom=FALSE) {	 return; }
+      
+      if NOT loadfirst
+      {
+         iRoll = Random(1,100);
+      }
+      else
+      {
+         iRoll = 1;
+      }
+
+      iTotal = 0;
+      for lMonster_info in plMonsters
+      {
+         iTotal = iTotal + Nth(lMonster_info,2);
+
+         if iRoll <= iTotal
+         {
+            oMonster = Create(First(lMonster_info),
+                              #attack_type=piAttack_type,#attack_spell=piAttack_spell,
+                              #speed=piSpeed,#karma=0,#level=piLevel,#difficulty=piDifficulty);
+ 
+            if not Send(self,@GenerateMonster,#oMonster=oMonster)
+            {
+               return 0;
+            }
+            
+	         break;
+	      }
+      }
+
+      return 1;
+   }
+   
+   SomethingKilled(victim=$)
+   {
+      if IsClass(victim,&Monster)
+      {
+         piKills_so_far = piKills_so_far + 1;
+      }
+      
+      if piKills_so_far = piKills_to_win
+      {
+         Post(self,@Victory);
+      }
+
       propagate;
+   }
+   
+   Victory()
+   {
+      local i, each_obj;
+      
+      for i in plActive
+      {
+         each_obj = Send(self,@HolderExtractObject,#data=i);
+         if IsClass(each_obj,&User)
+         {
+            Send(each_obj,@MsgSendUser,#message_rsc=InstanceRoom_win);
+            Send(each_obj,@WaveSendUser,#wave_rsc=victory_wav_rsc);
+         }
+      }
+   
+      return;
+   }
+   
+   IncreaseKillsToWin()
+   {
+      piKills_to_win = piKills_to_win + piAdditionalKills_to_win_per_player;
+      return;
    }
    
    ReturnUserToOrigin(who=$)
@@ -299,5 +445,19 @@ messages:
       return;
    }
 
+   ReqSpellCast(who = $, oSpell = $, lItems = $)
+   {
+      if IsClass(who, &User)
+      {
+         if IsClass(oSpell,&WallSpell)
+         {
+            Send(who,@MsgSendUser,#message_rsc=no_walls_in_instance);
+            return FALSE;
+         }
+      }
+
+      propagate;
+   }
+ 
 end
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%

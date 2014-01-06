@@ -14,7 +14,8 @@ constants:
 
    include blakston.khd
    
-   PORTAL_EXPIRATION_TIME = 60000
+   % 9 minutes
+   PORTAL_EXPIRATION_TIME = 300000
 
 resources:
 
@@ -34,35 +35,57 @@ resources:
    InstancePortal_closed = "The portal disappears."
    
    InstancePortal_teleport_rsc = "You rush through the open gateway, ready for combat!"
+   
+   InstancePortal_sound = qunbond.wav
 
 classvars:
 
    viObject_flags = MOVEON_TELEPORTER | DRAWFX_TRANSLUCENT_75
 
    viMaxDistance = 0
+   
+   viExperienceModMin = 1
+   viExperienceModMax = 3
+   
+   viTreasureModMin = 2
+   viTreasureModMax = 4
 
 properties:
 
    piBaseRID = $
    piMonsterClass = $
+   piSecondaryMonsterClass = $
    psMonsterName = $
+   
+   piLevel = 90
+   piDifficulty = 0
+   piKarma = 0
+   piAttack_type = ATCK_WEAP_HIT
+   piAttack_spell = 0
+   piSpeed = 0
 
    piDifficultyMod = 100
-   piExperienceMod = 100
-   piTreasureMod = 100
+   piExperienceMod = 2
+   piTreasureMod = 2
    
    ptPortalExpireTimer = $
    piDestRID = $
 
 messages:
 
-   Constructor(who=$,portal_room=$,portal_row=$,portal_col=$,portal_fine_row=$,portal_fine_col=$)
+   Constructor(who=$,level=90,portal_room=$,portal_row=$,portal_col=$,portal_fine_row=$,portal_fine_col=$)
    {
       local poInstanceRoomMaintenance, iRandom, plRIDs, plMonsterClasses, i;
 
       piDifficultyMod = 100;
-      piExperienceMod = 500;
-      piTreasureMod = 500;
+      piExperienceMod = Random(viExperienceModMin,viExperienceModMax);
+      piTreasureMod = Random(viTreasureModMin,viTreasureModMax);
+
+      piLevel = level;
+      piDifficulty = Random(1,9);
+      piAttack_type = ATCK_WEAP_SLASH + ATCK_WEAP_ALL;
+      piAttack_spell = ATCK_SPELL_FIRE;
+      piSpeed = Random(1,20);
       
       if who <> $
          AND IsClass(who,&User)
@@ -82,11 +105,15 @@ messages:
          plMonsterClasses = Send(poInstanceRoomMaintenance,@GetValidMonsterClasses);
          iRandom = Random(1,Length(plMonsterClasses));
          piMonsterClass = Nth(plMonsterClasses,iRandom);
+
+         iRandom = Random(1,Length(plMonsterClasses));
+         piSecondaryMonsterClass = Nth(plMonsterClasses,iRandom);
       }
       else
       {
          piBaseRID = RID_THRONE1;
          piMonsterClass = &Avar;
+         piSecondaryMonsterClass = &Lupogg;
       }
       
       for i in Send(SYS,@GetMonsterTemplates)
@@ -124,9 +151,15 @@ messages:
          iLocalRID = Send(poInstanceRoomMaintenance,@MakeInstanceRoom,
                      #iBaseRID=piBaseRID,
                      #monster_class=piMonsterClass,
+                     #secondary_monster_class=piSecondaryMonsterClass,
                      #iDifficultyMod=piDifficultyMod,
                      #iExperienceMod=piExperienceMod,
-                     #iTreasureMod=piTreasureMod);
+                     #iTreasureMod=piTreasureMod,
+                     #iLevel=piLevel,
+                     #iDifficulty=piDifficulty,
+                     #iAttack_type=piAttack_type,
+                     #iAttack_spell=piAttack_spell,
+                     #iSpeed=piSpeed);
 
          if iLocalRID = 0
          {
@@ -158,6 +191,21 @@ messages:
          if IsClass(each_obj,&User)
          {
             Send(each_obj,@MsgSendUser,#message_rsc=InstancePortal_opening);
+            Send(each_obj,@WaveSendUser,#row=Send(self,@GetRow),
+                                        #col=Send(self,@GetCol),
+                                        #wave_rsc=InstancePortal_sound);
+         }
+      }
+      
+      % Clear stacked items to make portal visible
+      for i in Send(oRoom,@GetPlPassive)
+      {
+         each_obj = Send(oRoom,@HolderExtractObject,#data=i);
+         if IsClass(each_obj,&Item)
+            AND Send(each_obj,@GetRow) = Send(self,@GetRow)
+            AND Send(each_obj,@GetCol) = Send(self,@GetCol)
+         {
+            Send(each_obj,@DestroyDisposable);
          }
       }
 
@@ -182,6 +230,7 @@ messages:
       {
          Send(what,@MsgSendUser,#message_rsc=InstancePortal_teleport_rsc);
          Send(oDestRoom,@Teleport,#what=what);
+         Send(oDestRoom,@IncreaseKillsToWin);
       }
 
       return;
@@ -224,27 +273,6 @@ messages:
       }
    
       propagate;
-   }
-
-   ShowDesc()
-   {
-      local rName;
-
-      rName = Send(Send(SYS,@FindRoomByNum,#num=piBaseRID),@GetName);
-
-      ClearTempString();
-      AppendTempString(InstancePortal_desc_rsc);
-      AppendTempString(rName);
-      AppendTempString(InstancePortal_desc2_rsc);
-      AppendTempString(piExperienceMod);
-      AppendTempString(InstancePortal_desc3_rsc);
-      AppendTempString(piTreasureMod);
-      AppendTempString(InstancePortal_desc4_rsc);
-      AppendTempString(psMonsterName);
-      AppendTempString(InstancePortal_desc5_rsc);
-
-      AddPacket(4,vrDesc,4,GetTempString());
-      return;
    }
 
 end

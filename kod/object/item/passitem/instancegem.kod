@@ -20,8 +20,8 @@ resources:
    InstanceGem_icon_rsc = serappol.bgf
    InstanceGem_desc_rsc = "This gem pulses with dimensional energy. You sense that it leads to a place much like "
    InstanceGem_desc2_rsc = ", with "
-   InstanceGem_desc3_rsc = "% experience gains and "
-   InstanceGem_desc4_rsc = "% treasure drops. You sense "
+   InstanceGem_desc3_rsc = " experience gains and "
+   InstanceGem_desc4_rsc = " treasure drops. You sense "
    InstanceGem_desc5_rsc = " life forces within."
 
    InstanceGem_portal = \
@@ -50,8 +50,8 @@ properties:
    psMonsterName = $
 
    piDifficultyMod = 100
-   piExperienceMod = 100
-   piTreasureMod = 100
+   piExperienceMod = 2
+   piTreasureMod = 2
 
 messages:
 
@@ -60,8 +60,8 @@ messages:
       local poInstanceRoomMaintenance, iRandom, plRIDs, plMonsterClasses, i;
 
       piDifficultyMod = Random(50,150);
-      piExperienceMod = Random(100,500);
-      piTreasureMod = Random(100,500);
+      piExperienceMod = 2;
+      piTreasureMod = 2;
       
       
       poInstanceRoomMaintenance = Send(SYS,@GetInstanceRoomMaintenance);
