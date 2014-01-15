@@ -75,7 +75,7 @@ messages:
 
    Constructor(who=$,level=90,portal_room=$,portal_row=$,portal_col=$,portal_fine_row=$,portal_fine_col=$)
    {
-      local poInstanceRoomMaintenance, iRandom, plRIDs, plMonsterClasses, i;
+      local poInstanceRoomMaintenance, iRandom, plRIDs, plMonsterClasses, i, lElementList;
 
       piDifficultyMod = 100;
       piExperienceMod = Random(viExperienceModMin,viExperienceModMax);
@@ -83,9 +83,20 @@ messages:
 
       piLevel = level;
       piDifficulty = Random(1,9);
-      piAttack_type = ATCK_WEAP_SLASH + ATCK_WEAP_ALL;
-      piAttack_spell = ATCK_SPELL_FIRE;
       piSpeed = Random(1,20);
+      
+      if Random(1,2) = 1
+      {
+         lElementList = [ATCK_WEAP_SLASH,ATCK_WEAP_BLUDGEON,ATCK_WEAP_PIERCE,ATCK_WEAP_THRUST,ATCK_WEAP_BITE,ATCK_WEAP_CLAW];
+         piAttack_type = Nth(lElementList,Random(1,Length(lElementList)));
+         piAttack_spell = 0;
+      }
+      else
+      {
+         lElementList = [ATCK_SPELL_FIRE,ATCK_SPELL_SHOCK,ATCK_SPELL_ACID,ATCK_SPELL_QUAKE,ATCK_SPELL_HOLY,ATCK_SPELL_UNHOLY,ATCK_SPELL_COLD];
+         piAttack_type = 0;
+         piAttack_spell = Nth(lElementList,Random(1,Length(lElementList)));
+      }
       
       if who <> $
          AND IsClass(who,&User)

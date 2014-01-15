@@ -296,6 +296,11 @@ messages:
          }
       }
       ptFloorTimer = $;
+      if ptRumbleTimer <> $
+      {
+         DeleteTimer(ptRumbleTimer);
+         ptRumbleTimer = $;
+      }
       return;
    }
    
