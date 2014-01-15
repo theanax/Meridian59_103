@@ -848,6 +848,8 @@
    RID_OLD_BAR_NORTH = 9002
    RID_OLD_BAR_SOUTH = 9003
 
+   % New rooms
+   RID_EDGE = 9599
    % Instanced Rooms RIDs 9600-9999
    RID_INSTANCE_START = 9600
 

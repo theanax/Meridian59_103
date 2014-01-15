@@ -3167,8 +3167,7 @@ messages:
          
          If Random(1,100) <= Send(Send(SYS,@GetSettings),@GetInstancePortalChance)
             AND NOT IsClass(Send(self,@GetOwner),&InstanceRoom)
-            AND Send(self,@GetLevel) >= 90
-            AND Send(self,@GetLevel) <= 130
+            AND Send(Send(self,@GetOwner),@CanHavePlayerPortal)
          {
             Create(&InstancePortal,#who=what,#level=Send(self,@GetLevel),
                                    #portal_room=Send(self,@GetOwner),
