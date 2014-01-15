@@ -296,6 +296,7 @@ properties:
    poTerritoryGame = $
    poNodeAttack = $
    poRentableRoomMaintenance = $
+   poInstanceRoomMaintenance = $
    
    % Singleton object that keeps track of various game statistics
    poStatistics = $
@@ -436,6 +437,7 @@ messages:
       Send(self,@RecreateQuestEngine);
       Send(self,@RecreateNodeAttack);
       Send(self,@RecreateRentableRoomMaintenance);
+      Send(self,@RecreateInstanceRoomMaintenance);
 
       Send(self,@RecreateAllSpells,#figure_totals=FALSE);
       Send(self,@RecreateAllSkills,#figure_totals=FALSE);
@@ -533,6 +535,7 @@ messages:
       Send(self,@RecreateParliament);
       Send(self,@RecreateNodeAttack);
       Send(self,@RecreateRentableRoomMaintenance);
+      Send(self,@RecreateInstanceRoomMaintenance);
       Send(self,@RecreateWarEvent);
 	  Send(self,@CreateAllSpellsIfNew);
 	  Send(self,@CreateAllRoomsIfNew);
@@ -1994,14 +1997,24 @@ messages:
       return;
    }
 
-   CreateOneRoomIfNew(num = $,class = $)
+   CreateOneRoomIfNew(num = $,class = $,iBaseRID = $)
    {
       local oRoom;
 
       if Send(self,@FindRoomByNum,#num=num) = $
       {
-         % note: only rentable rooms use the iRID parameter.
-         oRoom = Create(class,#iRID=num);
+         % note: only rentable and instanced rooms use the iRID parameter.
+         %       only instanced rooms use the instance_base_rid parameter
+         
+         if iBaseRID <> $
+         {
+            oRoom = Create(class,#iRID=num,#iBaseRID=iBaseRID);
+         }
+         else
+         {
+            oRoom = Create(class,#iRID=num);
+         }
+
          if oRoom = $
          {
             Debug("Tried to create room RID",num,"FAILED!");
@@ -2337,6 +2350,8 @@ messages:
       Send(self,@CreateOneRoomIfNew,#num=RID_OLD_MARION,#class=&OldMarion);
       Send(self,@CreateOneRoomIfNew,#num=RID_OLD_BAR_NORTH,#class=&OldBarloqueNorth);
       Send(self,@CreateOneRoomIfNew,#num=RID_OLD_BAR_SOUTH,#class=&OldBarloqueSouth);
+      
+      Send(self,@CreateOneRoomIfNew,#num=RID_EDGE,#class=&TheEdge);
 
 
       if poRentableRoomMaintenance <> $  % After a clean build, for example.
@@ -4475,6 +4490,11 @@ messages:
       return poNodeAttack;
    }
 
+   GetInstanceRoomMaintenance()
+   {
+      return poInstanceRoomMaintenance;
+   }
+   
    GetRentableRoomMaintenance()
    {
       return poRentableRoomMaintenance;
@@ -4523,6 +4543,20 @@ messages:
          poNodeAttack = Create(&NodeAttack);
       }
 
+      return TRUE;
+   }
+   
+   RecreateInstanceRoomMaintenance()
+   {
+      if poInstanceRoomMaintenance <> $
+      {
+         Send(poInstanceRoomMaintenance,@Recreate);
+      }
+      else
+      {
+         poInstanceRoomMaintenance = Create(&InstanceRoomMaintenance);
+      }
+      
       return TRUE;
    }
 
@@ -5013,6 +5047,8 @@ messages:
       plItemTemplates = cons(create(&ShrunkenHeadMask),plItemTemplates);
 
       plItemTemplates = cons(create(&ManaCrystal),plItemTemplates);
+      
+      plItemTemplates = cons(create(&InstanceGem),plItemTemplates);
 
       return;
    }

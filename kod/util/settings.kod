@@ -177,6 +177,9 @@ properties:
    % If enabled, logoff penalties do not rise exponentially, and instead remain flat
    pbFlatPenalties = TRUE
 
+   % Chance of getting an instance portal upon a kill
+   piInstancePortalChance = 100
+
 messages:
 
    Constructor(server_num = $)
@@ -436,6 +439,11 @@ messages:
    GetResistRingLoseDurability()
    {
       return piResistRingLoseDurability;
+   }
+   
+   GetInstancePortalChance()
+   {
+      return piInstancePortalChance;
    }
 
 end

@@ -7914,6 +7914,11 @@ messages:
 
          gainmult = bound(Send(Send(SYS, @GetSettings), @GetHPGainMultiplier),1,500);
          gain = gain * gainmult;
+         
+         If IsClass(Send(self,@GetOwner),&InstanceRoom)
+         {
+            gain = gain * Send(Send(self,@GetOwner),@GetExperienceMod);
+         }
 
          piGain_chance = piGain_chance + gain;
 

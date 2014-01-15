@@ -1,0 +1,328 @@
+% Meridian 59, Copyright 1994-2012 Andrew Kirmse and Chris Kirmse.
+% All rights reserved.
+%
+% This software is distributed under a license that is described in
+% the LICENSE file that accompanies it.
+%
+% Meridian is a registered trademark.
+
+
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+TheEdge is MonsterRoom
+
+constants:
+
+   include blakston.khd
+
+resources:
+
+   room_Edge = edge.roo
+   room_name_Edge ="The Edge of Annihilation"
+   Edge_music = song10.mid
+   
+   Edge_loop = necloop4.wav
+   Edge_loop2 = LavaFlow.wav
+   
+   Quake_sound = earthquake1.wav
+   Quake_sound2 = earthquake2.wav
+   
+   % grd01605 ?
+   Cave_Texture_rsc = grd01605.bgf
+   
+   rising_stone_rsc = "An outcropping of stone rises from the lava!"
+   falling_lava_rsc = "Molten magma spills forth from numerous distant cracks."
+   victory_danger_rsc = "With the necromancers dead, the constructed realityspace around you begins to collapse!"
+   tendrath_rescue_rsc = "You hear distant chanting... the voice of a long dead Hunter who still wanders the realms "
+                         "in search of revenge. His spell reaches across the void between worlds, and pulls you back home!"
+
+classvars:
+
+   vrName = room_name_Edge
+
+   viTeleport_row = 33
+   viTeleport_col = 25
+
+   viTerrain_type = TERRAIN_NECROPOLIS
+
+properties:
+
+   prRoom = room_Edge
+   prMusic = Edge_music
+   piRoom_num = RID_EDGE
+
+   piBaseLight = LIGHT_VERY_DARK
+   piOutside_factor = OUTDOORS_NONE
+
+   piGen_time = 25000
+   piGen_percent = 100
+
+   piInit_count_min = 6
+   piInit_count_max = 8
+
+   piMonster_count_max = 13
+
+   ptFloorTimer = $
+   ptRumbleTimer = $
+
+messages:
+
+   Constructed()
+   {
+      plMonsters = [ [&DarkAngel, 100] ];
+
+      plGenerators = [ [1, 1] ];
+
+      plLooping_sounds = [[ Edge_loop, 0, 0, 200, 100 ]];
+      plLooping_sounds = Cons([ Edge_loop2, 18, 14, 300, 100 ],
+                                 plLooping_sounds);
+
+      propagate;
+   }
+   
+   FirstUserEntered()
+   {
+      local oBoss;      
+      oBoss = Create(&NecromancerTroop);
+      Send(self,@NewHold,#what=oBoss,#new_row=3,#new_col=18);
+      
+      ptFloorTimer = CreateTimer(self,@RaiseFirstSection,10000);
+      
+      ptRumbleTimer = CreateTimer(self,@RandomRumble,Random(25000,45000));
+   
+      propagate;
+   }
+   
+   RandomRumble()
+   {
+      ptRumbleTimer = $;
+
+      Send(self,@SomethingWaveRoom,#wave_rsc=Quake_sound);
+      Send(self,@Rumble,#duration=3000,#disruption=100);
+
+      ptRumbleTimer = CreateTimer(self,@RandomRumble,Random(15000,30000));
+      
+      return;
+   }
+   
+   RaiseFirstSection()
+   {
+      local oMonster;
+   
+      ptFloorTimer = $;
+      
+      Send(self,@SomethingWaveRoom,#wave_rsc=Quake_sound);
+      Send(self,@Rumble,#duration=3000,#disruption=100);
+      Send(self,@ChangeTexture,#id=1,#new_texture=01605,#flags=CTF_FLOOR);
+      Send(self,@SetSector,#sector=1,#animation=ANIMATE_FLOOR_LIFT,
+              #height=3020,#speed=10);
+      Send(self,@ChangeTexture,#id=2,#new_texture=01605,#flags=CTF_FLOOR);
+      Send(self,@SetSector,#sector=2,#animation=ANIMATE_FLOOR_LIFT,
+              #height=3030,#speed=10);
+      Send(self,@ChangeTexture,#id=3,#new_texture=01605,#flags=CTF_FLOOR);
+      Send(self,@SetSector,#sector=3,#animation=ANIMATE_FLOOR_LIFT,
+              #height=3040,#speed=10);
+              
+      Send(self,@AnimateWall,#wall=10,#animation=ANIMATE_ONCE,#first_group=0,#second_group=0,#end_group=0,
+                             #speed=0,#passable=TRUE);
+      Send(self,@AnimateWall,#wall=11,#animation=ANIMATE_ONCE,#first_group=0,#second_group=0,#end_group=0,
+                             #speed=0,#passable=TRUE);
+      Send(self,@AnimateWall,#wall=12,#animation=ANIMATE_ONCE,#first_group=0,#second_group=0,#end_group=0,
+                             #speed=0,#passable=TRUE);
+      Send(self,@AnimateWall,#wall=13,#animation=ANIMATE_ONCE,#first_group=0,#second_group=0,#end_group=0,
+                             #speed=0,#passable=TRUE);
+      Send(self,@AnimateWall,#wall=14,#animation=ANIMATE_ONCE,#first_group=0,#second_group=0,#end_group=0,
+                             #speed=0,#passable=TRUE);
+      Send(self,@AnimateWall,#wall=15,#animation=ANIMATE_ONCE,#first_group=0,#second_group=0,#end_group=0,
+                             #speed=0,#passable=TRUE);
+                             
+      oMonster = Create(&DaemonSkeleton);
+      Send(self,@NewHold,#what=oMonster,#new_row=28,#new_col=21);
+      oMonster = Create(&DaemonSkeleton);
+      Send(self,@NewHold,#what=oMonster,#new_row=29,#new_col=22);
+      oMonster = Create(&DaemonSkeleton);
+      Send(self,@NewHold,#what=oMonster,#new_row=30,#new_col=21);
+      oMonster = Create(&DaemonSkeleton);
+      Send(self,@NewHold,#what=oMonster,#new_row=31,#new_col=22);
+      oMonster = Create(&DaemonSkeleton);
+      Send(self,@NewHold,#what=oMonster,#new_row=32,#new_col=23);
+      oMonster = Create(&DaemonSkeleton);
+      Send(self,@NewHold,#what=oMonster,#new_row=32,#new_col=21);
+      oMonster = Create(&DaemonSkeleton);
+      Send(self,@NewHold,#what=oMonster,#new_row=32,#new_col=22);
+      
+      return;
+   }
+   
+   SomethingKilled(what=$,victim=$)
+   {
+      if victim <> $
+         AND IsClass(victim,&DaemonSkeleton)
+      {
+         Send(self,@RaiseSecondSection);
+      }
+      if victim <> $
+         AND IsClass(victim,&DarkAngel)
+      {
+         Send(self,@RaiseFinalSection);
+      }
+      if victim <> $
+         AND IsClass(victim,&NecromancerTroop)
+      {
+         Send(self,@Victory);
+      }
+   
+   
+      propagate;
+   }
+   
+   RaiseSecondSection()
+   {
+      local oMonster;
+      
+      Send(self,@SomethingWaveRoom,#wave_rsc=Quake_sound);
+      Send(self,@Rumble,#duration=3000,#disruption=100);
+      Send(self,@ChangeTexture,#id=4,#new_texture=01605,#flags=CTF_FLOOR);
+      Send(self,@SetSector,#sector=4,#animation=ANIMATE_FLOOR_LIFT,
+              #height=3055,#speed=10);
+      Send(self,@ChangeTexture,#id=5,#new_texture=01605,#flags=CTF_FLOOR);
+      Send(self,@SetSector,#sector=5,#animation=ANIMATE_FLOOR_LIFT,
+              #height=3070,#speed=10);
+              
+      Send(self,@AnimateWall,#wall=16,#animation=ANIMATE_ONCE,#first_group=0,#second_group=0,#end_group=0,
+                             #speed=0,#passable=TRUE);
+      Send(self,@AnimateWall,#wall=17,#animation=ANIMATE_ONCE,#first_group=0,#second_group=0,#end_group=0,
+                             #speed=0,#passable=TRUE);
+      Send(self,@AnimateWall,#wall=18,#animation=ANIMATE_ONCE,#first_group=0,#second_group=0,#end_group=0,
+                             #speed=0,#passable=TRUE);
+      Send(self,@AnimateWall,#wall=19,#animation=ANIMATE_ONCE,#first_group=0,#second_group=0,#end_group=0,
+                             #speed=0,#passable=TRUE);
+                             
+      oMonster = Create(&DarkAngel);
+      Send(self,@NewHold,#what=oMonster,#new_row=24,#new_col=26);
+      oMonster = Create(&DarkAngel);
+      Send(self,@NewHold,#what=oMonster,#new_row=27,#new_col=26);
+      oMonster = Create(&DarkAngel);
+      Send(self,@NewHold,#what=oMonster,#new_row=26,#new_col=27);
+      
+      return;
+   }
+   
+   RaiseFinalSection()
+   {
+      local oMonster;
+   
+      Send(self,@SomethingWaveRoom,#wave_rsc=Quake_sound);
+      Send(self,@Rumble,#duration=3000,#disruption=100);
+      Send(self,@ChangeTexture,#id=6,#new_texture=01605,#flags=CTF_FLOOR);
+      Send(self,@SetSector,#sector=6,#animation=ANIMATE_FLOOR_LIFT,
+              #height=3025,#speed=10);
+      Send(self,@SetSector,#sector=7,#animation=ANIMATE_FLOOR_LIFT,
+              #height=2996,#speed=30);
+      Send(self,@SetSector,#sector=8,#animation=ANIMATE_FLOOR_LIFT,
+              #height=3015,#speed=40);
+      Send(self,@SetSector,#sector=9,#animation=ANIMATE_FLOOR_LIFT,
+              #height=3030,#speed=75);
+      
+      Send(self,@AnimateWall,#wall=20,#animation=ANIMATE_ONCE,#first_group=0,#second_group=0,#end_group=0,
+                             #speed=0,#passable=TRUE);
+      Send(self,@AnimateWall,#wall=21,#animation=ANIMATE_ONCE,#first_group=0,#second_group=0,#end_group=0,
+                             #speed=0,#passable=TRUE);
+
+      oMonster = Create(&NecromancerTroop);
+      Send(self,@NewHold,#what=oMonster,#new_row=2,#new_col=17);
+      oMonster = Create(&NecromancerTroop);
+      Send(self,@NewHold,#what=oMonster,#new_row=4,#new_col=17);
+      oMonster = Create(&NecromancerTroop);
+      Send(self,@NewHold,#what=oMonster,#new_row=2,#new_col=18);
+      oMonster = Create(&NecromancerTroop);
+      Send(self,@NewHold,#what=oMonster,#new_row=2,#new_col=19);
+      oMonster = Create(&NecromancerTroop);
+      Send(self,@NewHold,#what=oMonster,#new_row=4,#new_col=18);
+      oMonster = Create(&NecromancerTroop);
+      Send(self,@NewHold,#what=oMonster,#new_row=4,#new_col=19);
+
+      return;
+   }
+   
+   Victory()
+   {
+      local i, each_obj;
+   
+      for i in plActive
+      {
+         each_obj = Send(self,@HolderExtractObject,#data=i);
+         if IsClass(each_obj,&User)
+         {
+            Send(each_obj,@MsgSendUser,#message_rsc=falling_lava_rsc);
+            Send(each_obj,@MsgSendUser,#message_rsc=victory_danger_rsc);
+         }
+      }
+   
+      Send(self,@SomethingWaveRoom,#wave_rsc=Quake_sound2);
+      Send(self,@Rumble,#duration=7000,#disruption=100);
+      Send(self,@SetSector,#sector=7,#animation=ANIMATE_FLOOR_LIFT,
+              #height=1000,#speed=40);
+      Send(self,@SetSector,#sector=8,#animation=ANIMATE_FLOOR_LIFT,
+              #height=1000,#speed=60);
+      Send(self,@SetSector,#sector=9,#animation=ANIMATE_FLOOR_LIFT,
+              #height=1000,#speed=75);
+              
+      Send(self,@SetSector,#sector=40,#animation=ANIMATE_FLOOR_LIFT,
+              #height=1000,#speed=240);
+              
+      Send(self,@ChangeTexture,#id=41,#new_texture=03203,#flags=CTF_CEILING);
+      Send(self,@SetSector,#sector=41,#animation=ANIMATE_CEILING_LIFT,
+              #height=1000,#speed=255);
+      Send(self,@ChangeTexture,#id=42,#new_texture=03203,#flags=CTF_CEILING);
+      Send(self,@SetSector,#sector=42,#animation=ANIMATE_CEILING_LIFT,
+              #height=1000,#speed=190);
+              
+      ptFloorTimer = CreateTimer(self,@VictoryBoot,7000);
+      return;
+   }
+   
+   VictoryBoot()
+   {
+      local i, each_obj;
+   
+      for i in plActive
+      {
+         each_obj = Send(self,@HolderExtractObject,#data=i);
+         if IsClass(each_obj,&User)
+         {
+            Send(each_obj,@MsgSendUser,#message_rsc=tendrath_rescue_rsc);
+            Send(each_obj,@AdminGoToSafety);
+         }
+      }
+      ptFloorTimer = $;
+      if ptRumbleTimer <> $
+      {
+         DeleteTimer(ptRumbleTimer);
+         ptRumbleTimer = $;
+      }
+      return;
+   }
+   
+   LightTimer()
+   {
+      ptFloorTimer = $;
+      %Send(self,@SetSectorLight,#sector=9,#light_effect=FLICKER_ON);
+      return;
+   }
+
+   CreateStandardExits()
+   {
+      plEdge_exits = $;
+
+      propagate;
+   }
+   
+   CanHavePlayerPortal()
+   {
+      return FALSE;
+   }
+
+  
+end
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
