@@ -1,0 +1,41 @@
+% Meridian 59, Copyright 1994-2012 Andrew Kirmse and Chris Kirmse.
+% All rights reserved.
+%
+% This software is distributed under a license that is described in
+% the LICENSE file that accompanies it.
+%
+% Meridian is a registered trademark.
+
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+DuskRatTreasure is TreasureType
+
+constants:
+   
+   include blakston.khd
+   
+classvars:
+
+
+properties:
+   
+   piTreasure_num = TID_DUSKRAT
+   
+   piItem_att_chance = 50
+   piDiff_seed = 5
+
+messages:
+   
+   constructed()
+   {
+      plTreasure = [ [ &PurpleMushroom, 80 ],
+                     [ &Cheese, 1],
+					 [ &YellowMushroom, 10],
+					 [ &Shortsword, 5],
+                     [ &Money, 25 ] ];
+
+      propagate;
+   }
+
+end
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%

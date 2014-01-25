@@ -1585,6 +1585,8 @@
    TID_KRIIPA        = 55
    TID_MOLLUSK       = 56
    TID_SHADOWBEAST   = 57
+   TID_SNOWRAT       = 58  
+   TID_DUSKRAT       = 59   
 
    %%% English articles
 
